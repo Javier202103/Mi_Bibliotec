@@ -231,6 +231,13 @@ app.get('/api/categorias', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener categorías' });
   }
 });
+// Servir la página bonita (frontend)
+app.use(express.static(path.join(__dirname, '.')));  // Busca archivos en la misma carpeta
+
+// Cuando alguien entra a la página principal (/), muestra index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Iniciar servidor
 app.listen(3000, () => {
