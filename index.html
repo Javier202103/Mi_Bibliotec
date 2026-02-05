@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Biblioteca Online</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo">📚 Mi Biblioteca</div>
+        <nav>
+            <ul>
+                <li><a href="#">Inicio</a></li>
+                <li class="dropdown">
+    <a href="#" class="dropbtn">Categorías <i class="fas fa-chevron-down"></i></a>
+    <ul class="dropdown-content" id="categorias-menu">
+        <li><a href="#" data-categoria="todas" class="categoria-link">Todas</a></li>
+        <!-- Categorías dinámicas se agregan aquí -->
+    </ul>
+</li>
+    </ul>
+</li>
+</li>
+            </ul>
+        </nav>
+        <div class="user-actions">
+            <button id="btn-login" class="btn btn-secondary">Iniciar Sesión</button>
+            <button id="btn-register" class="btn btn-primary">Crear Cuenta</button>
+        </div>
+    </header>
+
+    <!-- Catálogo -->
+    <section class="catalog">
+        <div class="search-bar">
+            <input id="search-input" type="text" placeholder="Busca por título, autor o categoría...">
+            <i class="fas fa-search"></i>
+        </div>
+        <div id="catalog-container" class="catalog-grid"></div>
+    </section>
+
+    <!-- Modal Registro -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeRegisterModal()">×</span>
+            <h2>Crear Cuenta</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="reg-name">Nombre Completo</label>
+                    <input type="text" id="reg-name" placeholder="Tu nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Correo Electrónico</label>
+                    <input type="email" id="reg-email" placeholder="correo@ejemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Contraseña</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="reg-password" placeholder="Tu contraseña" required>
+                        <button type="button" id="toggle-reg-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">CREAR CUENTA</button>
+                <p style="text-align:center; margin-top:15px;">
+                    ¿Ya tienes cuenta? <a href="#" onclick="closeRegisterModal(); openLogin();">Inicia sesión</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Login -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">×</span>
+            <h2>Iniciar Sesión</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Correo Electrónico</label>
+                    <input type="email" id="login-email" placeholder="correo@ejemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Contraseña</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="login-password" placeholder="Tu contraseña" required>
+                        <button type="button" id="toggle-login-password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">INICIAR SESIÓN</button>
+                <p style="text-align:center; margin-top:15px;">
+                    ¿No tienes cuenta? <a href="#" onclick="closeLoginModal(); openRegister();">Crear una</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Section -->
+    <div id="admin-section" style="display:none; max-width:800px; margin:30px auto; padding:20px; background:#f9f9f9; border-radius:8px;">
+        <h3>Agregar Nuevo Libro (Admin)</h3>
+        <form id="add-book-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="new-titulo">Título</label>
+                <input type="text" id="new-titulo" name="titulo" required placeholder="Ej: Bobby Fisher Enseña Ajedrez">
+            </div>
+            <div class="form-group">
+                <label for="new-autor">Autor</label>
+                <input type="text" id="new-autor" name="autor" required placeholder="Ej: Bobby Fisher">
+            </div>
+            <div class="form-group">
+                <label for="new-categoria">Categoría</label>
+                <input type="text" id="new-categoria" name="categoria" required placeholder="Ej: Aprendizaje">
+            </div>
+            <div class="form-group">
+                <label for="new-imagen">Portada (imagen)</label>
+                <input type="file" id="new-imagen" name="imagen" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="new-pdf">Archivo PDF</label>
+                <input type="file" id="new-pdf" name="pdf" accept=".pdf" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Subir Libro</button>
+        </form>
+        <p id="add-book-status" style="margin-top:10px; color:#27ae60;"></p>
+    </div>
+
+    <!-- PIE DE PÁGINA -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-logo">Mi Biblioteca</div>
+                <p>Tu rincón digital para descubrir, aprender y soñar con miles de historias.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Explora</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Categorías</a></li>
+                    <li><a href="#">Novedades</a></li>
+                    <li><a href="#">Recomendados</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Cuenta</h3>
+                <ul class="footer-links">
+                    <li><a href="#" onclick="openLogin(); return false;">Iniciar sesión</a></li>
+                    <li><a href="#" onclick="openRegister(); return false;">Crear cuenta</a></li>
+                    <li><a href="#">Mis préstamos</a></li>
+                    <li><a href="#">Favoritos</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <p>📧 javieraraujo182@gmail.com</p>
+                <p>📱 +58 4124051882</p>
+                <div class="social-icons">
+                    <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="#" target="_blank"><i class="fab fa-facebook"></i></a>
+                    <a href="#" target="_blank"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © 2026 Mi Biblioteca Online — Hecho con 📚 y Esfuerzos<br>
+            <small>Todos los derechos reservados | Política de privacidad | Términos de uso</small>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

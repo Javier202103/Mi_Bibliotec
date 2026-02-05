@@ -1,0 +1,424 @@
+/* ==========================================================================
+   1. IMPORTACIONES Y BASES
+   ========================================================================== */
+   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');
+
+   * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+   
+   body { background-color: #f4f4f9; color: #333; }
+   body.modal-open { overflow: hidden; }
+   
+   /* ==========================================================================
+      2. HEADER Y NAVEGACIÓN
+      ========================================================================== */
+   header {
+       background: #fff; 
+       padding: 0.5rem 5%; 
+       display: flex;
+       justify-content: space-between; 
+       align-items: center;
+       box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+       position: sticky; 
+       top: 0; 
+       z-index: 1000;
+       height: 100px;
+   }
+   
+   .logo {
+       font-family: 'Playfair Display', serif; 
+       font-size: 3.2rem; 
+       font-weight: 900;
+       letter-spacing: -1.5px;
+       cursor: default;
+       background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570, #4285f4);
+       background-size: 300% auto;
+       -webkit-background-clip: text; /* Funciona para que el color no se salga del titulo (NO BORRAR!!!) */
+       -webkit-text-fill-color: transparent;
+       animation: geminiFlow 5s ease infinite;
+       display: flex;
+       align-items: center;
+   }
+   
+   @keyframes geminiFlow {
+       0% { background-position: 0% 50%; }
+       50% { background-position: 100% 50%; }
+       100% { background-position: 0% 50%; }
+   }
+   
+   nav ul { list-style: none; display: flex; align-items: center; gap: 25px; }
+   nav a { text-decoration: none; color: #555; font-weight: 500; }
+   
+   .user-actions { display: flex; align-items: center; gap: 12px; }
+   .user-actions button {
+       white-space: nowrap;
+       padding: 10px 20px;
+       border-radius: 6px;
+       cursor: pointer;
+       font-weight: 600;
+       transition: 0.3s;
+   }
+   
+   .btn-primary { background: #3498db; color: white; border: none; }
+   .btn-primary:hover { background: #2980b9; }
+   
+   .btn-secondary { background: transparent; color: #3498db; border: 1px solid #3498db; }
+   .btn-secondary:hover { background: #3498db; color: white; }
+   
+   /* Dropdown Categorías */
+   .dropdown { position: relative; }
+   .dropdown-content {
+       display: none; 
+       position: absolute; 
+       top: 100%; 
+       left: 0;
+       background: white; 
+       min-width: 200px; 
+       box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+       z-index: 2000; 
+       border-radius: 4px;
+       max-height: 220px; 
+       overflow-y: auto; 
+       flex-direction: column;
+   }
+   .dropdown:hover .dropdown-content { display: flex; }
+   .dropdown-content a { padding: 12px 16px; text-decoration: none; color: #333; border-bottom: 1px solid #eee; display: block; }
+   .dropdown-content a:hover { background-color: #f9f9f9; }
+   
+   /* ==========================================================================
+      3. HERO (BANNER) Y BUSCADOR
+      ========================================================================== */
+   .hero {
+       height: 500px; 
+       background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('banner.jpg');
+       background-size: cover; 
+       background-position: center; 
+       background-attachment: fixed; 
+       display: flex; 
+       flex-direction: column; 
+       justify-content: center; 
+       align-items: center; 
+       color: white;
+       text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+   }
+   
+   .hero h1 { font-size: 3rem; font-family: 'Playfair Display', serif; margin-bottom: 25px; font-weight: 900; }
+   
+   .search-container {
+       margin-top: 20px; 
+       display: flex; 
+       background: white; 
+       padding: 5px;
+       border-radius: 30px; 
+       width: 90%; 
+       max-width: 500px;
+       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+   }
+   
+   #search-input { border: none; padding: 10px 20px; flex: 1; border-radius: 30px; outline: none; font-size: 1rem; }
+   #search-btn { background: #3498db; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; transition: 0.3s; }
+   #search-btn:hover { background: #2980b9; transform: scale(1.1); }
+   
+   /* ==========================================================================
+      4. CATÁLOGO DE LIBROS
+      ========================================================================== */
+   main { padding: 2rem 5%; }
+   .catalog-grid {
+       display: grid; 
+       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+       gap: 2rem; 
+       margin-top: 20px;
+   }
+   
+   .book-card { 
+       background: white; 
+       border-radius: 8px; 
+       overflow: hidden; 
+       box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+       transition: transform 0.3s ease, box-shadow 0.3s ease;
+   }
+   
+   .book-card:hover { transform: translateY(-10px) scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+   
+   .book-cover { height: 250px; background: #eee; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+   .book-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+   .book-card:hover .book-cover img { transform: scale(1.1); }
+   
+   /* ==========================================================================
+      5. MODALES Y FORMULARIOS
+      ========================================================================== */
+   .modal {
+       display: none; position: fixed; z-index: 3000; left: 0; top: 0;
+       width: 100%; height: 100%; background: rgba(0,0,0,0.7); overflow-y: auto;
+   }
+   .modal-content {
+       background: #fff; margin: 5% auto; padding: 30px;
+       width: 90%; max-width: 450px; border-radius: 12px; position: relative;
+   }
+   .close { position: absolute; right: 20px; top: 10px; font-size: 28px; cursor: pointer; }
+   .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+   .form-group label { font-weight: bold; margin-bottom: 5px; }
+   .form-group input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+   
+   /* Wrapper para el ojo de la contraseña */
+   .password-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
+   #toggle-password { position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #aaa; }
+   
+   #register-form .btn-primary { width: 100%; margin-top: 15px; padding: 12px; font-size: 1rem; text-transform: uppercase; }
+   
+   /* Validación */
+   .input-error-gmail { border: 2px solid #d93025 !important; }
+   #password-error-msg { display: none; color: #d93025; font-size: 12px; margin-top: 5px; align-items: center; gap: 5px; }
+   
+/* ==========================================================================
+   6. FOOTER (PIE DE PÁGINA)
+   ========================================================================== */
+   footer {
+    /* Un azul muy profundo que combina con el btn-primary (#3498db) */
+    background: linear-gradient(135deg, #1a2a3a 0%, #0f172a 100%);
+    color: #ecf0f1; /* Blanco azulado suave para no cansar la vista */
+    padding: 25px 5% 15px;
+    margin-top: 40px;
+    position: relative;
+    border-top: 3px solid;
+    border-image-slice: 1;
+    border-image-source: linear-gradient(90deg, #4285f4, #9b72cb, #d96570, #4285f4);
+}
+
+/* El brillo sutil en la parte superior del footer */
+footer::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.footer-info h3 { 
+    font-family: 'Playfair Display', serif; 
+    font-size: 1.1rem;
+    margin-bottom: 8px; 
+    color: #4285f4; /* El azul oficial de Google/Gemini */
+}
+
+.footer-info p { 
+    margin: 4px 0;
+    font-size: 0.85rem;
+    color: #bdc3c7; /* Gris claro para los textos secundarios */
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
+
+.footer-info p i {
+    color: #3498db; /* Los iconos resaltan en el azul del botón */
+}
+
+.footer-social a { 
+    color: #ecf0f1; 
+    font-size: 1.2rem; 
+    transition: 0.3s ease; 
+    opacity: 0.8;
+}
+
+.footer-social a:hover { 
+    color: #4285f4; 
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+.footer-logo-seal {
+    text-align: center; 
+    font-family: 'Playfair Display', serif; 
+    font-size: 1.4rem;
+    font-weight: 900;
+    /* Usamos el mismo azul pero casi invisible */
+    color: rgba(66, 133, 244, 0.07); 
+    text-transform: uppercase; 
+    letter-spacing: 5px;
+    margin: 15px 0 5px 0;
+}
+
+.footer-bottom {
+    text-align: center; 
+    margin-top: 10px; 
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05); 
+    font-size: 0.75rem; 
+    color: #7f8c8d;
+}
+
+/* Dentro de .footer-content */
+.footer-content {
+    display: flex;
+    justify-content: space-between; /* Empuja la ubicación a la derecha */
+    align-items: center;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 20px;
+}
+
+/* Estilo para el nuevo bloque derecho */
+.footer-location p {
+    font-size: 0.9rem;
+    color: #ecf0f1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.footer-location i {
+    color: #d96570; /* Color distintivo para el pin de ubicación */
+    font-size: 1.1rem;
+}
+
+/* Ajuste móvil para que la ubicación se centre si no hay espacio */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-location {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+}
+   
+   /* ==========================================================================
+      7. RESPONSIVE (TELEFONOS)
+      ========================================================================== */
+   @media (max-width: 768px) {
+       header { height: auto; padding: 15px 5%; flex-direction: column; gap: 15px; }
+       .logo { font-size: 2rem; justify-content: center; }
+       nav ul { gap: 15px; justify-content: center; }
+       .user-actions { justify-content: center; }
+       .hero { height: 450px; background-attachment: scroll; }
+       .hero h1 { font-size: 1.8rem; }
+       .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+       .book-cover { height: 180px; }
+       .footer-content { flex-direction: column; text-align: center; }
+       .footer-info p { justify-content: center; }
+       .footer-info:first-child { border-bottom: 2px solid; border-image: linear-gradient(to right, #4285f4, #9b72cb, #d96570) 1; padding-bottom: 30px; margin-bottom: 30px; }
+   }
+   
+   /* Ajuste PC */
+   @media (min-width: 1024px) {
+       .catalog-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 30px !important; }
+       .book-cover { height: 280px; }
+   }
+
+   /* Mejora ligera de botones - sin romper lo que ya tenías */
+
+/* Botón principal (Leer, Crear cuenta, Subir libro) */
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background 0.25s, transform 0.2s;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+/* Botón secundario (Iniciar sesión) */
+.btn-secondary {
+    background: transparent;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: all 0.25s;
+}
+
+.btn-secondary:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Botón BORRAR (rojo) */
+.btn-borrar,
+.btn-danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-weight: 600;
+    transition: background 0.25s, transform 0.2s;
+}
+
+.btn-borrar:hover,
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Botón PRESTAR (verde) */
+.btn-prestar,
+.btn-success {
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-weight: 600;
+    transition: background 0.25s, transform 0.2s;
+}
+
+.btn-prestar:hover,
+.btn-success:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+/* Mejor alineación de botones en las tarjetas */
+.book-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.book-info button {
+    min-width: 100px;
+    flex: 1 1 auto;
+    max-width: 140px;
+}
+
+/* Estilos para nuevas secciones */
+#favoritos-section, #estadisticas-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#estadisticas-content {
+    font-size: 1.1rem;
+}
+
+/* Modal préstamo */
+textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+select, input[type="number"], input[type="time"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
