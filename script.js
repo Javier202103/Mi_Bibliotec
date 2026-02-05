@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cargar y renderizar libros (con filtro de búsqueda y categoría)
     async function fetchAndRenderBooks(searchTerm = '', category = 'todas') {
         try {
-            const res = await fetch('https://mi-biblioteca.onrender.com/api/libros');
+            const res = await fetch('https://mi-bibliotec.onrender.com/api/libros');
             if (!res.ok) throw new Error('Error al cargar libros');
             
             let books = await res.json();
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.className = 'book-card';
                 card.innerHTML = `
                     <div class="book-cover">
-                        <img src="https://mi-biblioteca.onrender.com/uploads/${book.imagen_url || 'placeholder.jpg'}" alt="${book.titulo}" onerror="this.src='https://via.placeholder.com/200x280?text=Libro'">
+                        <img src="https://mi-bibliotec.onrender.com/uploads/${book.imagen_url || 'placeholder.jpg'}" alt="${book.titulo}" onerror="this.src='https://via.placeholder.com/200x280?text=Libro'">
                     </div>
                     <div class="book-info">
                         <div class="book-title"><strong>${book.titulo}</strong></div>
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cargar categorías dinámicas
     async function cargarCategorias() {
         try {
-            const res = await fetch('https://mi-biblioteca.onrender.com/api/categorias');
+            const res = await fetch('https://mi-bibliotec.onrender.com/api/categorias');
             if (!res.ok) throw new Error('Error al cargar categorías');
 
             const categorias = await res.json();
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openPDF = function(pdfUrl) {
         if (pdfUrl) {
-            window.open(`https://mi-biblioteca.onrender.com/uploads/${pdfUrl}`, '_blank');
+            window.open(`https://mi-bibliotec.onrender.com/uploads/${pdfUrl}`, '_blank');
         } else {
             alert('No hay PDF disponible para este libro');
         }
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm('¿Seguro que quieres borrar este libro?')) return;
         
         try {
-            const res = await fetch(`https://mi-biblioteca.onrender.com/api/libros/${id}`, {
+            const res = await fetch(`https://mi-bibliotec.onrender.com/api/libros/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${currentToken}` }
             });
@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const res = await fetch('https://mi-biblioteca.onrender.com/api/prestamos', {
+            const res = await fetch('https://mi-bibliotec.onrender.com/api/prestamos', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             password: document.getElementById('reg-password').value
         };
         try {
-            const res = await fetch('https://mi-biblioteca.onrender.com/api/signup', {
+            const res = await fetch('https://mi-bibliotec.onrender.com/api/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             password: document.getElementById('login-password').value
         };
         try {
-            const res = await fetch('https://mi-biblioteca.onrender.com/api/login', {
+            const res = await fetch('https://mi-bibliotec.onrender.com/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentToken || !isAdmin) return alert('Solo admins');
         const formData = new FormData(addBookForm);
         try {
-            const res = await fetch('https://mi-biblioteca.onrender.com/api/libros', {
+            const res = await fetch('https://mi-bibliotec.onrender.com/api/libros', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${currentToken}` },
                 body: formData

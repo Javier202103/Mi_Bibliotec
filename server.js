@@ -14,13 +14,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));  // Necesario para campos texto en multipart
 
-// Conexión a PostgreSQL (cambia la contraseña si es diferente)
+// Conexión a PostgreSQL (usa la variable de entorno de Render)
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'mi_biblioteca',
-    password: '123456',  // ← CAMBIA ESTO si tu contraseña es otra
-    port: 5432,
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 // Carpeta para guardar archivos subidos
@@ -40,12 +39,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Ruta para registro (signup) - versión corregida sin 'titulo'
+// Ruta para registro (signup)
 app.post('/api/signup', async (req, res) => {
     const { nombre, email, password } = req.body;
 
     if (!nombre || !email || !password) {
-        return res.status(400).json({ error: 'Faltan campos obligatorios: nombre, email o password' });
+        return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
     try {
@@ -58,17 +57,14 @@ app.post('/api/signup', async (req, res) => {
 
         res.status(201).json({ message: 'Usuario creado con éxito' });
     } catch (err) {
-        console.error('Error completo al crear usuario:', err);
-
-        // Error de email duplicado (código PostgreSQL 23505)
+        console.error('Error al crear usuario:', err);
         if (err.code === '23505') {
             return res.status(409).json({ error: 'El email ya está registrado' });
         }
-
-        // Otros errores
-        res.status(500).json({ error: 'Error interno al crear el usuario', details: err.message });
+        res.status(500).json({ error: 'Error interno al crear el usuario' });
     }
 });
+
 // Ruta para login
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
@@ -82,7 +78,7 @@ app.post('/api/login', async (req, res) => {
 
         const token = jwt.sign(
             { id: user.id, es_admin: user.es_admin || false },
-            'secret',  // Cambia esto por una clave más segura en producción
+            process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
@@ -93,14 +89,14 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// Middleware para verificar token (auth)
+// Middleware para verificar token
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) return res.status(401).json({ error: 'Token requerido' });
 
-    jwt.verify(token, 'secret', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
         if (err) return res.status(403).json({ error: 'Token inválido' });
         req.user = user;
         next();
@@ -135,28 +131,21 @@ app.post('/api/libros', verifyToken, upload.fields([{ name: 'imagen', maxCount: 
 
 // Borrar libro (admin)
 app.delete('/api/libros/:id', verifyToken, async (req, res) => {
-    console.log('Intento de borrar libro ID:', req.params.id, 'por usuario:', req.user);
-
     try {
         if (!req.user.es_admin) {
-            console.log('Usuario no es admin');
             return res.status(403).json({ error: 'Solo administradores pueden borrar libros' });
         }
 
-        const libroId = req.params.id;
-
-        const result = await pool.query('DELETE FROM libros WHERE id = $1 RETURNING *', [libroId]);
+        const result = await pool.query('DELETE FROM libros WHERE id = $1 RETURNING *', [req.params.id]);
 
         if (result.rowCount === 0) {
-            console.log('Libro no encontrado, ID:', libroId);
             return res.status(404).json({ error: 'Libro no encontrado' });
         }
 
-        console.log('Libro borrado con éxito, ID:', libroId);
-        res.json({ message: 'Libro borrado correctamente', libroId });
+        res.json({ message: 'Libro borrado correctamente' });
     } catch (err) {
-        console.error('Error al borrar libro:', err.stack);
-        res.status(500).json({ error: 'Error al borrar el libro', details: err.message });
+        console.error('Error al borrar libro:', err);
+        res.status(500).json({ error: 'Error al borrar' });
     }
 });
 
@@ -171,75 +160,31 @@ app.get('/api/libros', async (req, res) => {
     }
 });
 
-// Registrar préstamo
-app.post('/api/prestamos', verifyToken, async (req, res) => {
-    const { libro_id, tiempo_lectura } = req.body;
-    const usuario_id = req.user.id;
-
+// Endpoint para categorías únicas
+app.get('/api/categorias', async (req, res) => {
     try {
-        await pool.query(
-            'INSERT INTO prestamos (libro_id, usuario_id, tiempo_lectura) VALUES ($1, $2, $3)',
-            [libro_id, usuario_id, tiempo_lectura]
-        );
-        res.json({ message: 'Préstamo registrado' });
+        const result = await pool.query('SELECT DISTINCT categoria FROM libros WHERE categoria IS NOT NULL AND categoria != \'\' ORDER BY categoria');
+        const categorias = result.rows.map(row => row.categoria);
+        res.json(categorias);
     } catch (err) {
-        console.error('Error en préstamo:', err);
-        res.status(500).json({ error: 'Error al registrar préstamo' });
-    }
-});
-
-// Obtener préstamos del usuario
-app.get('/api/prestamos', verifyToken, async (req, res) => {
-    const usuario_id = req.user.id;
-    try {
-        const result = await pool.query(`
-            SELECT p.*, l.titulo, l.autor, l.imagen_url, l.pdf_url
-            FROM prestamos p
-            JOIN libros l ON p.libro_id = l.id
-            WHERE p.usuario_id = $1
-            ORDER BY p.fecha_prestamo DESC
-        `, [usuario_id]);
-        res.json(result.rows);
-    } catch (err) {
-        console.error('Error al obtener préstamos:', err);
-        res.status(500).json({ error: 'Error al cargar préstamos' });
-    }
-});
-
-// Descargar PDF (requiere login)
-app.get('/api/download/:filename', verifyToken, (req, res) => {
-    const filePath = path.join(uploadDir, req.params.filename);
-    console.log('Intentando descargar:', filePath);
-    if (fs.existsSync(filePath)) {
-        res.download(filePath);
-    } else {
-        res.status(404).json({ error: 'Archivo no encontrado' });
+        console.error('Error al obtener categorías:', err);
+        res.status(500).json({ error: 'Error al obtener categorías' });
     }
 });
 
 // Servir archivos subidos (imágenes y PDFs)
 app.use('/uploads', express.static(uploadDir));
 
-// Nuevo endpoint para categorías únicas
-app.get('/api/categorias', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT DISTINCT categoria FROM libros WHERE categoria IS NOT NULL AND categoria != \'\' ORDER BY categoria');
-    const categorias = result.rows.map(row => row.categoria);
-    res.json(categorias);
-  } catch (err) {
-    console.error('Error al obtener categorías:', err);
-    res.status(500).json({ error: 'Error al obtener categorías' });
-  }
-});
-// Servir la página bonita (frontend)
-app.use(express.static(path.join(__dirname, '.')));  // Busca archivos en la misma carpeta
+// Servir archivos estáticos del frontend (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, '.')));
 
-// Cuando alguien entra a la página principal (/), muestra index.html
+// Ruta principal: enviar index.html
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Iniciar servidor
-app.listen(3000, () => {
-    console.log('Servidor corriendo en https://mi-biblioteca.onrender.com');
+// Iniciar servidor con puerto dinámico para Render
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Servidor corriendo en puerto ${port}`);
 });
